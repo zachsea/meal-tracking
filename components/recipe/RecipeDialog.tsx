@@ -247,11 +247,31 @@ export function RecipeDialog({
             {macroMode === "manual" ? (
               <Stack sx={{ flexDirection: "row", gap: 2, flexWrap: "wrap" }}>
                 <MacroField label="kcal" value={kcal} onChange={setKcal} />
-                <MacroField label="Protein (g)" value={protein} onChange={setProtein} />
-                <MacroField label="Fiber (g)" value={fiber} onChange={setFiber} />
-                <MacroField label="Carbs (g)" value={carbs} onChange={setCarbs} />
-                <MacroField label="Sugar (g)" value={sugar} onChange={setSugar} />
-                <MacroField label="Sodium (mg)" value={sodium} onChange={setSodium} />
+                <MacroField
+                  label="Protein (g)"
+                  value={protein}
+                  onChange={setProtein}
+                />
+                <MacroField
+                  label="Fiber (g)"
+                  value={fiber}
+                  onChange={setFiber}
+                />
+                <MacroField
+                  label="Carbs (g)"
+                  value={carbs}
+                  onChange={setCarbs}
+                />
+                <MacroField
+                  label="Sugar (g)"
+                  value={sugar}
+                  onChange={setSugar}
+                />
+                <MacroField
+                  label="Sodium (mg)"
+                  value={sodium}
+                  onChange={setSodium}
+                />
               </Stack>
             ) : (
               <IngredientEditor

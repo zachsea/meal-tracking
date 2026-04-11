@@ -15,7 +15,11 @@ import { sumIngredients } from "@/utils/recipe";
 interface IngredientEditorProps {
   ingredients: IngredientRow[];
   setIngredients: React.Dispatch<React.SetStateAction<IngredientRow[]>>;
-  updateIngredient: (id: string, field: keyof IngredientRow, value: string) => void;
+  updateIngredient: (
+    id: string,
+    field: keyof IngredientRow,
+    value: string,
+  ) => void;
   derived: ReturnType<typeof sumIngredients> | null;
 }
 
@@ -79,27 +83,21 @@ export function IngredientEditor({
         >
           <TextField
             value={ing.name}
-            onChange={(e) =>
-              updateIngredient(ing.id, "name", e.target.value)
-            }
+            onChange={(e) => updateIngredient(ing.id, "name", e.target.value)}
             size="small"
             placeholder="Name"
             sx={{ flex: 2 }}
           />
           <TextField
             value={ing.amount}
-            onChange={(e) =>
-              updateIngredient(ing.id, "amount", e.target.value)
-            }
+            onChange={(e) => updateIngredient(ing.id, "amount", e.target.value)}
             size="small"
             placeholder="200g"
             sx={{ flex: 1 }}
           />
           <TextField
             value={ing.kcal}
-            onChange={(e) =>
-              updateIngredient(ing.id, "kcal", e.target.value)
-            }
+            onChange={(e) => updateIngredient(ing.id, "kcal", e.target.value)}
             size="small"
             type="number"
             sx={{ flex: 1 }}
@@ -115,36 +113,28 @@ export function IngredientEditor({
           />
           <TextField
             value={ing.fiber}
-            onChange={(e) =>
-              updateIngredient(ing.id, "fiber", e.target.value)
-            }
+            onChange={(e) => updateIngredient(ing.id, "fiber", e.target.value)}
             size="small"
             type="number"
             sx={{ flex: 1 }}
           />
           <TextField
             value={ing.carbs}
-            onChange={(e) =>
-              updateIngredient(ing.id, "carbs", e.target.value)
-            }
+            onChange={(e) => updateIngredient(ing.id, "carbs", e.target.value)}
             size="small"
             type="number"
             sx={{ flex: 1 }}
           />
           <TextField
             value={ing.sugar}
-            onChange={(e) =>
-              updateIngredient(ing.id, "sugar", e.target.value)
-            }
+            onChange={(e) => updateIngredient(ing.id, "sugar", e.target.value)}
             size="small"
             type="number"
             sx={{ flex: 1 }}
           />
           <TextField
             value={ing.sodium}
-            onChange={(e) =>
-              updateIngredient(ing.id, "sodium", e.target.value)
-            }
+            onChange={(e) => updateIngredient(ing.id, "sodium", e.target.value)}
             size="small"
             type="number"
             sx={{ flex: 1 }}
@@ -152,9 +142,7 @@ export function IngredientEditor({
           <IconButton
             size="small"
             onClick={() =>
-              setIngredients((prev) =>
-                prev.filter((i) => i.id !== ing.id),
-              )
+              setIngredients((prev) => prev.filter((i) => i.id !== ing.id))
             }
             disabled={ingredients.length === 1}
           >
@@ -166,9 +154,7 @@ export function IngredientEditor({
       <Button
         startIcon={<AddCircleOutlineIcon />}
         size="small"
-        onClick={() =>
-          setIngredients((prev) => [...prev, emptyIngredient()])
-        }
+        onClick={() => setIngredients((prev) => [...prev, emptyIngredient()])}
         sx={{ alignSelf: "flex-start" }}
       >
         Add ingredient
@@ -187,18 +173,9 @@ export function IngredientEditor({
           >
             Totals (summed from ingredients)
           </Typography>
-          <Stack
-            sx={{ flexDirection: "row", gap: 3, flexWrap: "wrap" }}
-          >
+          <Stack sx={{ flexDirection: "row", gap: 3, flexWrap: "wrap" }}>
             {(
-              [
-                "kcal",
-                "protein",
-                "fiber",
-                "carbs",
-                "sugar",
-                "sodium",
-              ] as const
+              ["kcal", "protein", "fiber", "carbs", "sugar", "sodium"] as const
             ).map((key) => (
               <Box key={key} sx={{ textAlign: "center" }}>
                 <Typography
