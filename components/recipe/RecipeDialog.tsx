@@ -19,27 +19,11 @@ import {
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutlined";
-import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutlined";
-import { useEffect, useState, useTransition } from "react";
-import { createRecipe, updateRecipe, deleteRecipe } from "@/actions/recipes";
-import { IIngredient } from "@/models/Recipe";
-import { latestVersion, sumIngredients } from "@/utils/recipe";
-import { IngredientRow, Recipe } from "@/types/recipe";
+import { useState } from "react";
+import { Recipe } from "@/types/recipe";
 import { CATEGORY_OPTIONS } from "@/const/Categories";
-
-function emptyIngredient(): IngredientRow {
-  return {
-    id: crypto.randomUUID(),
-    name: "",
-    amount: "",
-    kcal: "",
-    protein: "",
-    fiber: "",
-    carbs: "",
-    sugar: "",
-    sodium: "",
-  };
-}
+import { useRecipeForm } from "./hooks/useRecipeForm";
+import { IngredientEditor } from "./IngredientEditor";
 
 interface RecipeDialogProps {
   open: boolean;
@@ -48,204 +32,16 @@ interface RecipeDialogProps {
   onSaved: () => void;
 }
 
-export function RecipeDialog({
-  open,
-  recipe,
-  onClose,
-  onSaved,
-}: RecipeDialogProps) {
-  const isEdit = recipe !== null;
-  const v = recipe ? latestVersion(recipe) : null;
-
-  const [tab, setTab] = useState(0);
-  const [error, setError] = useState<string | null>(null);
-  const [isPending, startTransition] = useTransition();
-
-  // ── form state ──
-  const [name, setName] = useState("");
-  const [servingSize, setServingSize] = useState("");
-  const [servingsMade, setServingsMade] = useState("");
-  const [category, setCategory] = useState("");
-  const [recipeSource, setRecipeSource] = useState("");
-  const [notes, setNotes] = useState("");
-  const [changeNote, setChangeNote] = useState("");
-  const [ingredientNotes, setIngredientNotes] = useState("");
-
-  // macro mode: "manual" or "ingredients"
-  const [macroMode, setMacroMode] = useState<"manual" | "ingredients">(
-    "manual",
-  );
-  const [kcal, setKcal] = useState("");
-  const [protein, setProtein] = useState("");
-  const [fiber, setFiber] = useState("");
-  const [carbs, setCarbs] = useState("");
-  const [sugar, setSugar] = useState("");
-  const [sodium, setSodium] = useState("");
-  const [ingredients, setIngredients] = useState<IngredientRow[]>([
-    emptyIngredient(),
-  ]);
-
-  // populate when editing
-  useEffect(() => {
-    if (!open) return;
-    setTab(0);
-    setError(null);
-    if (recipe && v) {
-      setName(recipe.name);
-      setServingSize(recipe.servingSize);
-      setServingsMade(String(v.servingsMade));
-      setCategory(recipe.category ?? "");
-      setRecipeSource(recipe.recipeSource ?? "");
-      setNotes(recipe.notes ?? "");
-      setChangeNote("");
-      setIngredientNotes(recipe.ingredientNotes?.join(", ") ?? "");
-
-      if (v.ingredients?.length) {
-        setMacroMode("ingredients");
-        setIngredients(
-          v.ingredients.map((ing: IIngredient) => ({
-            id: crypto.randomUUID(),
-            name: ing.name,
-            amount: ing.amount,
-            kcal: String(ing.kcal),
-            protein: String(ing.protein),
-            fiber: String(ing.fiber),
-            carbs: String(ing.carbs),
-            sugar: String(ing.sugar),
-            sodium: String(ing.sodium),
-          })),
-        );
-      } else {
-        setMacroMode("manual");
-        setKcal(String(v.kcal));
-        setProtein(String(v.protein));
-        setFiber(String(v.fiber));
-        setCarbs(String(v.carbs));
-        setSugar(String(v.sugar));
-        setSodium(String(v.sodium));
-        setIngredients([emptyIngredient()]);
-      }
-    } else {
-      setName("");
-      setServingSize("");
-      setServingsMade("");
-      setCategory("");
-      setRecipeSource("");
-      setNotes("");
-      setChangeNote("");
-      setIngredientNotes("");
-      setMacroMode("manual");
-      setKcal("");
-      setProtein("");
-      setFiber("");
-      setCarbs("");
-      setSugar("");
-      setSodium("");
-      setIngredients([emptyIngredient()]);
-    }
-  }, [open, recipe]);
-
-  const derived =
-    macroMode === "ingredients" ? sumIngredients(ingredients) : null;
-
-  function updateIngredient(
-    id: string,
-    field: keyof IngredientRow,
-    value: string,
-  ) {
-    setIngredients((prev) =>
-      prev.map((ing) => (ing.id === id ? { ...ing, [field]: value } : ing)),
-    );
-  }
-
-  function handleSave() {
-    setError(null);
-
-    const macros =
-      macroMode === "ingredients" && derived
-        ? derived
-        : {
-            kcal: Number(kcal),
-            protein: Number(protein),
-            fiber: Number(fiber),
-            carbs: Number(carbs),
-            sugar: Number(sugar),
-            sodium: Number(sodium),
-          };
-
-    if (!name.trim()) return setError("Recipe name is required");
-    if (!servingSize.trim()) return setError("Serving size is required");
-    if (!servingsMade || isNaN(Number(servingsMade)))
-      return setError("Servings made must be a number");
-
-    const versionData = {
-      servingsMade: Number(servingsMade),
-      changeNote: changeNote || undefined,
-      ingredients:
-        macroMode === "ingredients"
-          ? ingredients
-              .filter((i) => i.name.trim())
-              .map((i) => ({
-                name: i.name,
-                amount: i.amount,
-                kcal: Number(i.kcal) || 0,
-                protein: Number(i.protein) || 0,
-                fiber: Number(i.fiber) || 0,
-                carbs: Number(i.carbs) || 0,
-                sugar: Number(i.sugar) || 0,
-                sodium: Number(i.sodium) || 0,
-              }))
-          : undefined,
-      ...macros,
-    };
-
-    const meta = {
-      name: name.trim(),
-      servingSize: servingSize.trim(),
-      category: category || undefined,
-      recipeSource: recipeSource || undefined,
-      notes: notes || undefined,
-      ingredientNotes: ingredientNotes
-        ? ingredientNotes
-            .split(",")
-            .map((s) => s.trim())
-            .filter(Boolean)
-        : [],
-    };
-
-    startTransition(async () => {
-      try {
-        if (isEdit && recipe) {
-          await updateRecipe(recipe._id, { ...meta, newVersion: versionData });
-        } else {
-          await createRecipe({ ...meta, ...versionData });
-        }
-        onSaved();
-        onClose();
-      } catch (e) {
-        setError(e instanceof Error ? e.message : "Something went wrong");
-      }
-    });
-  }
-
-  function handleDelete() {
-    if (!recipe) return;
-    startTransition(async () => {
-      try {
-        await deleteRecipe(recipe._id);
-        onSaved();
-        onClose();
-      } catch (e) {
-        setError(e instanceof Error ? e.message : "Something went wrong");
-      }
-    });
-  }
-
-  const macroField = (
-    label: string,
-    value: string,
-    onChange: (v: string) => void,
-  ) => (
+function MacroField({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+}) {
+  return (
     <TextField
       label={label}
       value={value}
@@ -256,6 +52,59 @@ export function RecipeDialog({
       sx={{ flex: 1, minWidth: 80 }}
     />
   );
+}
+
+export function RecipeDialog({
+  open,
+  recipe,
+  onClose,
+  onSaved,
+}: RecipeDialogProps) {
+  const [tab, setTab] = useState(0);
+
+  const form = useRecipeForm({ open, recipe, onClose, onSaved });
+
+  const {
+    name,
+    setName,
+    servingSize,
+    setServingSize,
+    servingsMade,
+    setServingsMade,
+    category,
+    setCategory,
+    recipeSource,
+    setRecipeSource,
+    notes,
+    setNotes,
+    changeNote,
+    setChangeNote,
+    ingredientNotes,
+    setIngredientNotes,
+    macroMode,
+    setMacroMode,
+    kcal,
+    setKcal,
+    protein,
+    setProtein,
+    fiber,
+    setFiber,
+    carbs,
+    setCarbs,
+    sugar,
+    setSugar,
+    sodium,
+    setSodium,
+    ingredients,
+    setIngredients,
+    derived,
+    updateIngredient,
+    handleSave,
+    handleDelete,
+    isPending,
+    error,
+    isEdit,
+  } = form;
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
@@ -397,198 +246,20 @@ export function RecipeDialog({
 
             {macroMode === "manual" ? (
               <Stack sx={{ flexDirection: "row", gap: 2, flexWrap: "wrap" }}>
-                {macroField("kcal", kcal, setKcal)}
-                {macroField("Protein (g)", protein, setProtein)}
-                {macroField("Fiber (g)", fiber, setFiber)}
-                {macroField("Carbs (g)", carbs, setCarbs)}
-                {macroField("Sugar (g)", sugar, setSugar)}
-                {macroField("Sodium (mg)", sodium, setSodium)}
+                <MacroField label="kcal" value={kcal} onChange={setKcal} />
+                <MacroField label="Protein (g)" value={protein} onChange={setProtein} />
+                <MacroField label="Fiber (g)" value={fiber} onChange={setFiber} />
+                <MacroField label="Carbs (g)" value={carbs} onChange={setCarbs} />
+                <MacroField label="Sugar (g)" value={sugar} onChange={setSugar} />
+                <MacroField label="Sodium (mg)" value={sodium} onChange={setSodium} />
               </Stack>
             ) : (
-              <Stack sx={{ gap: 1 }}>
-                {/* Header row */}
-                <Stack sx={{ flexDirection: "row", gap: 1 }}>
-                  {[
-                    "Ingredient",
-                    "Amount",
-                    "kcal",
-                    "Protein",
-                    "Fiber",
-                    "Carbs",
-                    "Sugar",
-                    "Sodium",
-                    "",
-                  ].map((h) => (
-                    <Typography
-                      key={h}
-                      variant="caption"
-                      sx={{
-                        flex: h === "Ingredient" ? 2 : h === "" ? 0 : 1,
-                        minWidth: h === "" ? 32 : 0,
-                        color: "text.disabled",
-                        fontWeight: 500,
-                        fontSize: 10,
-                        textTransform: "uppercase",
-                        letterSpacing: "0.06em",
-                      }}
-                    >
-                      {h}
-                    </Typography>
-                  ))}
-                </Stack>
-
-                {ingredients.map((ing) => (
-                  <Stack
-                    key={ing.id}
-                    sx={{ flexDirection: "row", gap: 1, alignItems: "center" }}
-                  >
-                    <TextField
-                      value={ing.name}
-                      onChange={(e) =>
-                        updateIngredient(ing.id, "name", e.target.value)
-                      }
-                      size="small"
-                      placeholder="Name"
-                      sx={{ flex: 2 }}
-                    />
-                    <TextField
-                      value={ing.amount}
-                      onChange={(e) =>
-                        updateIngredient(ing.id, "amount", e.target.value)
-                      }
-                      size="small"
-                      placeholder="200g"
-                      sx={{ flex: 1 }}
-                    />
-                    <TextField
-                      value={ing.kcal}
-                      onChange={(e) =>
-                        updateIngredient(ing.id, "kcal", e.target.value)
-                      }
-                      size="small"
-                      type="number"
-                      sx={{ flex: 1 }}
-                    />
-                    <TextField
-                      value={ing.protein}
-                      onChange={(e) =>
-                        updateIngredient(ing.id, "protein", e.target.value)
-                      }
-                      size="small"
-                      type="number"
-                      sx={{ flex: 1 }}
-                    />
-                    <TextField
-                      value={ing.fiber}
-                      onChange={(e) =>
-                        updateIngredient(ing.id, "fiber", e.target.value)
-                      }
-                      size="small"
-                      type="number"
-                      sx={{ flex: 1 }}
-                    />
-                    <TextField
-                      value={ing.carbs}
-                      onChange={(e) =>
-                        updateIngredient(ing.id, "carbs", e.target.value)
-                      }
-                      size="small"
-                      type="number"
-                      sx={{ flex: 1 }}
-                    />
-                    <TextField
-                      value={ing.sugar}
-                      onChange={(e) =>
-                        updateIngredient(ing.id, "sugar", e.target.value)
-                      }
-                      size="small"
-                      type="number"
-                      sx={{ flex: 1 }}
-                    />
-                    <TextField
-                      value={ing.sodium}
-                      onChange={(e) =>
-                        updateIngredient(ing.id, "sodium", e.target.value)
-                      }
-                      size="small"
-                      type="number"
-                      sx={{ flex: 1 }}
-                    />
-                    <IconButton
-                      size="small"
-                      onClick={() =>
-                        setIngredients((prev) =>
-                          prev.filter((i) => i.id !== ing.id),
-                        )
-                      }
-                      disabled={ingredients.length === 1}
-                    >
-                      <DeleteOutlineIcon fontSize="small" />
-                    </IconButton>
-                  </Stack>
-                ))}
-
-                <Button
-                  startIcon={<AddCircleOutlineIcon />}
-                  size="small"
-                  onClick={() =>
-                    setIngredients((prev) => [...prev, emptyIngredient()])
-                  }
-                  sx={{ alignSelf: "flex-start" }}
-                >
-                  Add ingredient
-                </Button>
-
-                {/* Derived totals */}
-                {derived && (
-                  <Paper
-                    variant="outlined"
-                    sx={{ p: 1.5, bgcolor: "action.hover", mt: 1 }}
-                  >
-                    <Typography
-                      variant="caption"
-                      color="text.secondary"
-                      sx={{ mb: 1, display: "block" }}
-                    >
-                      Totals (summed from ingredients)
-                    </Typography>
-                    <Stack
-                      sx={{ flexDirection: "row", gap: 3, flexWrap: "wrap" }}
-                    >
-                      {(
-                        [
-                          "kcal",
-                          "protein",
-                          "fiber",
-                          "carbs",
-                          "sugar",
-                          "sodium",
-                        ] as const
-                      ).map((key) => (
-                        <Box key={key} sx={{ textAlign: "center" }}>
-                          <Typography
-                            variant="caption"
-                            color="text.disabled"
-                            sx={{
-                              display: "block",
-                              textTransform: "uppercase",
-                              fontSize: 10,
-                            }}
-                          >
-                            {key}
-                          </Typography>
-                          <Typography
-                            variant="body2"
-                            sx={{ fontFamily: "monospace", fontWeight: 600 }}
-                          >
-                            {derived[key]}
-                          </Typography>
-                        </Box>
-                      ))}
-                    </Stack>
-                  </Paper>
-                )}
-              </Stack>
+              <IngredientEditor
+                ingredients={ingredients}
+                setIngredients={setIngredients}
+                updateIngredient={updateIngredient}
+                derived={derived}
+              />
             )}
           </Stack>
         )}
