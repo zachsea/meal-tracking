@@ -21,21 +21,39 @@ export default function HistoryPage() {
   const [entries, setEntries] = useState<MealEntry[]>([]);
   const [filteredEntries, setFilteredEntries] = useState<MealEntry[]>([]);
   const [search, setSearch] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
   const [loading, setLoading] = useState(true);
   const [, startTransition] = useTransition();
 
+  // Fetch entries for the selected date range
   useEffect(() => {
+    setLoading(true);
     startTransition(async () => {
       try {
-        // fetch all entries (API will return last 50 if no date specified)
-        const data = await getMealEntries();
-        setEntries(data);
+        let filteredData: MealEntry[] = [];
+        if (startDate || endDate) {
+          // Fetch all and filter client-side by date range
+          const data = await getMealEntries();
+          filteredData = data.filter((e: MealEntry) => {
+            const entryDate = new Date(e.loggedAt).toISOString().split("T")[0];
+            if (startDate && entryDate < startDate) return false;
+            if (endDate && entryDate > endDate) return false;
+            return true;
+          });
+        } else {
+          // No date filter, fetch all (last 50)
+          const data = await getMealEntries();
+          filteredData = data;
+        }
+        setEntries(filteredData);
       } finally {
         setLoading(false);
       }
     });
-  }, []);
+  }, [startDate, endDate]);
 
+  // Filter by search (client-side)
   useEffect(() => {
     const filtered = entries.filter((e) =>
       e.recipeName.toLowerCase().includes(search.toLowerCase()),
@@ -84,20 +102,38 @@ export default function HistoryPage() {
         >
           Meal History
         </Typography>
-        <TextField
-          placeholder="Search meals..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          size="small"
-          slotProps={{
-            input: {
-              startAdornment: (
-                <SearchIcon sx={{ mr: 1, color: "text.disabled" }} />
-              ),
-            },
-          }}
-          sx={{ width: 300 }}
-        />
+        <Box sx={{ display: "flex", gap: 2, alignItems: "flex-start" }}>
+          <TextField
+            label="Start date"
+            type="date"
+            value={startDate}
+            onChange={(e) => setStartDate(e.target.value)}
+            size="small"
+            slotProps={{ inputLabel: { shrink: true } }}
+          />
+          <TextField
+            label="End date"
+            type="date"
+            value={endDate}
+            onChange={(e) => setEndDate(e.target.value)}
+            size="small"
+            slotProps={{ inputLabel: { shrink: true } }}
+          />
+          <TextField
+            placeholder="Search meals..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            size="small"
+            slotProps={{
+              input: {
+                startAdornment: (
+                  <SearchIcon sx={{ mr: 1, color: "text.disabled" }} />
+                ),
+              },
+            }}
+            sx={{ width: 300 }}
+          />
+        </Box>
       </Box>
 
       {/* Table */}
