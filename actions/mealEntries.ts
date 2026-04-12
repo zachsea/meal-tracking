@@ -89,7 +89,7 @@ export async function getMealEntries(date?: string) {
     .sort({ loggedAt: -1 })
     .limit(date ? 0 : 50);
 
-  return entries.map((e) => e.toJSON());
+  return JSON.parse(JSON.stringify(entries.map((e) => e.toJSON())));
 }
 
 export async function getMealEntry(id: string) {
@@ -99,7 +99,7 @@ export async function getMealEntry(id: string) {
   await connectDB();
   const entry = await MealEntry.findOne({ _id: id, userId: user.id });
   if (!entry) throw new Error("Not found");
-  return entry.toJSON();
+  return JSON.parse(JSON.stringify(entry.toJSON()));
 }
 
 export async function createMealEntryFromRecipe(data: CreateFromRecipeInput) {
@@ -180,7 +180,7 @@ export async function createMealEntryFromRecipe(data: CreateFromRecipeInput) {
   });
 
   revalidatePath("/log");
-  return entry.toJSON();
+  return JSON.parse(JSON.stringify(entry.toJSON()));
 }
 
 export async function createManualMealEntry(data: CreateManualInput) {
@@ -206,7 +206,7 @@ export async function createManualMealEntry(data: CreateManualInput) {
   });
 
   revalidatePath("/log");
-  return entry.toJSON();
+  return JSON.parse(JSON.stringify(entry.toJSON()));
 }
 
 export async function updateMealEntry(id: string, data: UpdateMealEntryInput) {
@@ -261,7 +261,7 @@ export async function updateMealEntry(id: string, data: UpdateMealEntryInput) {
 
   await entry.save();
   revalidatePath("/log");
-  return entry.toJSON();
+  return JSON.parse(JSON.stringify(entry.toJSON()));
 }
 
 export async function deleteMealEntry(id: string) {

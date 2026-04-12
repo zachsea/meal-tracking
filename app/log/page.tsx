@@ -20,6 +20,7 @@ import { Recipe } from "@/types/recipe";
 import { MacroChip } from "@/components/recipe/MacroChip";
 import { MealEntryCard } from "@/components/log/MealEntryCard";
 import { MealEntryDialog } from "@/components/log/MealEntryDialog";
+import { roundMacro } from "@/utils/macros";
 
 export default function LogPage() {
   const [entries, setEntries] = useState<MealEntry[]>([]);
@@ -135,42 +136,42 @@ export default function LogPage() {
           <Stack sx={{ flexDirection: "row", gap: 3, flexWrap: "wrap" }}>
             <MacroChip
               label="kcal"
-              value={Math.round(totals.kcal)}
+              value={roundMacro("kcal", totals.kcal)}
               unit=""
               color="primary.main"
               blurred={false}
             />
             <MacroChip
               label="Protein"
-              value={totals.protein}
+              value={roundMacro("protein", totals.protein)}
               unit="g"
               color="success.main"
               blurred={false}
             />
             <MacroChip
               label="Fiber"
-              value={totals.fiber}
+              value={roundMacro("fiber", totals.fiber)}
               unit="g"
               color="info.main"
               blurred={false}
             />
             <MacroChip
               label="Carbs"
-              value={totals.carbs}
+              value={roundMacro("carbs", totals.carbs)}
               unit="g"
               color="warning.main"
               blurred={false}
             />
             <MacroChip
               label="Sugar"
-              value={totals.sugar}
+              value={roundMacro("sugar", totals.sugar)}
               unit="g"
               color="error.main"
               blurred={false}
             />
             <MacroChip
               label="Sodium"
-              value={Math.round(totals.sodium)}
+              value={roundMacro("sodium", totals.sodium)}
               unit="mg"
               color="text.secondary"
               blurred={false}

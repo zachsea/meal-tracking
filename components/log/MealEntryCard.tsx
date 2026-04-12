@@ -9,6 +9,7 @@ import {
 import EditIcon from "@mui/icons-material/Edit";
 import { MealEntry } from "@/types/mealEntry";
 import { MacroChip } from "@/components/recipe/MacroChip";
+import { roundMacro } from "@/utils/macros";
 
 interface MealEntryCardProps {
   entry: MealEntry;
@@ -54,42 +55,42 @@ export function MealEntryCard({ entry, onEdit }: MealEntryCardProps) {
         <Stack sx={{ flexDirection: "row", gap: 2, flexWrap: "wrap" }}>
           <MacroChip
             label="kcal"
-            value={entry.kcal}
+            value={roundMacro("kcal", entry.kcal)}
             unit=""
             color="primary.main"
             blurred={false}
           />
           <MacroChip
             label="Protein"
-            value={entry.protein}
+            value={roundMacro("protein", entry.protein)}
             unit="g"
             color="success.main"
             blurred={false}
           />
           <MacroChip
             label="Fiber"
-            value={entry.fiber}
+            value={roundMacro("fiber", entry.fiber)}
             unit="g"
             color="info.main"
             blurred={false}
           />
           <MacroChip
             label="Carbs"
-            value={entry.carbs}
+            value={roundMacro("carbs", entry.carbs)}
             unit="g"
             color="warning.main"
             blurred={false}
           />
           <MacroChip
             label="Sugar"
-            value={entry.sugar}
+            value={roundMacro("sugar", entry.sugar)}
             unit="g"
             color="error.main"
             blurred={false}
           />
           <MacroChip
             label="Sodium"
-            value={entry.sodium}
+            value={roundMacro("sodium", entry.sodium)}
             unit="mg"
             color="text.secondary"
             blurred={false}

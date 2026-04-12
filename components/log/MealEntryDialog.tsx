@@ -22,6 +22,7 @@ import { MealEntry } from "@/types/mealEntry";
 import { Recipe } from "@/types/recipe";
 import { useMealEntryForm } from "./hooks/useMealEntryForm";
 import { IngredientEditor } from "@/components/recipe/IngredientEditor";
+import { roundMacro } from "@/utils/macros";
 
 interface MealEntryDialogProps {
   open: boolean;
@@ -191,7 +192,7 @@ export function MealEntryDialog({
                       variant="body2"
                       sx={{ fontFamily: "monospace" }}
                     >
-                      {perServingMacros.kcal.toFixed(0)}
+                      {roundMacro("kcal", perServingMacros.kcal)}
                     </Typography>
                   </Box>
                   <Box>
@@ -206,7 +207,7 @@ export function MealEntryDialog({
                       variant="body2"
                       sx={{ fontFamily: "monospace" }}
                     >
-                      {perServingMacros.protein.toFixed(1)}g
+                      {roundMacro("protein", perServingMacros.protein)}g
                     </Typography>
                   </Box>
                   <Box>
@@ -221,7 +222,7 @@ export function MealEntryDialog({
                       variant="body2"
                       sx={{ fontFamily: "monospace" }}
                     >
-                      {perServingMacros.carbs.toFixed(1)}g
+                      {roundMacro("carbs", perServingMacros.carbs)}g
                     </Typography>
                   </Box>
                   <Box>
@@ -236,7 +237,7 @@ export function MealEntryDialog({
                       variant="body2"
                       sx={{ fontFamily: "monospace" }}
                     >
-                      {perServingMacros.fiber.toFixed(1)}g
+                      {roundMacro("fiber", perServingMacros.fiber)}g
                     </Typography>
                   </Box>
                 </Stack>
@@ -262,7 +263,7 @@ export function MealEntryDialog({
                       variant="body2"
                       sx={{ fontFamily: "monospace", fontWeight: 600 }}
                     >
-                      {scaledMacros.kcal.toFixed(0)}
+                      {roundMacro("kcal", scaledMacros.kcal)}
                     </Typography>
                   </Box>
                   <Box>
@@ -277,7 +278,7 @@ export function MealEntryDialog({
                       variant="body2"
                       sx={{ fontFamily: "monospace", fontWeight: 600 }}
                     >
-                      {scaledMacros.protein.toFixed(1)}g
+                      {roundMacro("protein", scaledMacros.protein)}g
                     </Typography>
                   </Box>
                   <Box>
@@ -292,7 +293,7 @@ export function MealEntryDialog({
                       variant="body2"
                       sx={{ fontFamily: "monospace", fontWeight: 600 }}
                     >
-                      {scaledMacros.carbs.toFixed(1)}g
+                      {roundMacro("carbs", scaledMacros.carbs)}g
                     </Typography>
                   </Box>
                   <Box>
@@ -307,7 +308,7 @@ export function MealEntryDialog({
                       variant="body2"
                       sx={{ fontFamily: "monospace", fontWeight: 600 }}
                     >
-                      {scaledMacros.fiber.toFixed(1)}g
+                      {roundMacro("fiber", scaledMacros.fiber)}g
                     </Typography>
                   </Box>
                 </Stack>
