@@ -12,11 +12,13 @@ import {
   FormControlLabel,
   Switch,
   Stack,
+  Button,
 } from "@mui/material";
 import DashboardOutlinedIcon from "@mui/icons-material/DashboardOutlined";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutlineOutlined";
 import BarChartIcon from "@mui/icons-material/BarChartOutlined";
 import MenuBookIcon from "@mui/icons-material/MenuBookOutlined";
+import AddIcon from "@mui/icons-material/Add";
 import { usePathname, useRouter } from "next/navigation";
 import { useCalories } from "@/context/CalorieContext";
 
@@ -58,6 +60,7 @@ interface SidebarProps {
   isMobile: boolean;
   mobileOpen: boolean;
   onMobileClose: () => void;
+  onLogMeal: () => void;
 }
 
 const drawerSx = (width: number) => ({
@@ -76,6 +79,7 @@ export function Sidebar({
   isMobile,
   mobileOpen,
   onMobileClose,
+  onLogMeal,
 }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
@@ -171,7 +175,22 @@ export function Sidebar({
         ))}
       </Box>
 
+      {/* Log meal button */}
+      <Box sx={{ px: 2, pb: 2 }}>
+        <Button
+          variant="contained"
+          fullWidth
+          startIcon={<AddIcon />}
+          onClick={onLogMeal}
+          disableElevation
+          size="small"
+        >
+          Log meal
+        </Button>
+      </Box>
+
       <Divider />
+
       <Box sx={{ p: 2 }}>
         <Typography
           variant="caption"

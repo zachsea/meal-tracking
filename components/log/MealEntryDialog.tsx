@@ -1,3 +1,5 @@
+"use client";
+
 import {
   Alert,
   Autocomplete,
@@ -17,16 +19,17 @@ import {
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutlined";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { MealEntry } from "@/types/mealEntry";
 import { Recipe } from "@/types/recipe";
 import { useMealEntryForm } from "./hooks/useMealEntryForm";
 import { IngredientEditor } from "@/components/recipe/IngredientEditor";
 import { roundMacro } from "@/utils/macros";
+import { getRecipes } from "@/actions/recipes";
 
 interface MealEntryDialogProps {
   open: boolean;
-  entry: MealEntry | null; // null = create mode
+  entry: MealEntry | null;
   recipes: Recipe[];
   onClose: () => void;
   onSaved: () => void;
@@ -57,23 +60,43 @@ function MacroField({
 export function MealEntryDialog({
   open,
   entry,
-  recipes,
   onClose,
   onSaved,
-}: MealEntryDialogProps) {
+}: Omit<MealEntryDialogProps, "recipes">) {
   const [tab, setTab] = useState(0);
+  const [recipes, setRecipes] = useState<Recipe[]>([]);
+  const [recipesLoading, setRecipesLoading] = useState(false);
+
+  // fetch recipes when dialog opens
+  useEffect(() => {
+    if (!open) return;
+
+    let cancelled = false;
+
+    setRecipesLoading(true);
+    getRecipes().then((data) => {
+      if (!cancelled) {
+        setRecipes(data);
+        setRecipesLoading(false);
+      }
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [open]);
 
   const form = useMealEntryForm({ open, entry, recipes, onClose, onSaved });
 
   const {
-    selectedRecipeId,
     setSelectedRecipeId,
     servingsEaten,
     setServingsEaten,
     notes,
     setNotes,
+    loggedAt,
+    setLoggedAt,
     selectedRecipe,
-    selectedVersion,
     perServingMacros,
     scaledMacros,
     hasIngredients,
@@ -101,9 +124,7 @@ export function MealEntryDialog({
     isEdit,
   } = form;
 
-  const handleTabChange = (_: any, newTab: number) => {
-    setTab(newTab);
-  };
+  const manualTabIndex = selectedRecipe && hasIngredients ? 2 : 1;
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
@@ -125,7 +146,7 @@ export function MealEntryDialog({
 
       <Tabs
         value={tab}
-        onChange={handleTabChange}
+        onChange={(_, v) => setTab(v)}
         sx={{ px: 3, borderBottom: 1, borderColor: "divider" }}
       >
         <Tab label="Recipe" />
@@ -145,6 +166,7 @@ export function MealEntryDialog({
           <Stack sx={{ gap: 2 }}>
             <Autocomplete
               options={recipes}
+              loading={recipesLoading}
               getOptionLabel={(r) => r.name}
               isOptionEqualToValue={(opt, val) => opt._id === val._id}
               value={selectedRecipe || null}
@@ -157,16 +179,28 @@ export function MealEntryDialog({
               )}
             />
 
-            <TextField
-              label="Servings eaten"
-              value={servingsEaten}
-              onChange={(e) => setServingsEaten(e.target.value)}
-              size="small"
-              type="number"
-              slotProps={{ htmlInput: { min: 0, step: "any" } }}
-              required
-              helperText="Can be decimal (e.g., 1.5)"
-            />
+            <Stack sx={{ flexDirection: "row", gap: 2 }}>
+              <TextField
+                label="Servings eaten"
+                value={servingsEaten}
+                onChange={(e) => setServingsEaten(e.target.value)}
+                size="small"
+                type="number"
+                slotProps={{ htmlInput: { min: 0, step: "any" } }}
+                required
+                helperText="Can be decimal (e.g., 1.5)"
+                sx={{ flex: 1 }}
+              />
+              <TextField
+                label="Date & time eaten"
+                value={loggedAt}
+                onChange={(e) => setLoggedAt(e.target.value)}
+                size="small"
+                type="datetime-local"
+                slotProps={{ inputLabel: { shrink: true } }}
+                sx={{ flex: 1 }}
+              />
+            </Stack>
 
             {perServingMacros && scaledMacros && (
               <Paper variant="outlined" sx={{ p: 2, bgcolor: "action.hover" }}>
@@ -177,69 +211,27 @@ export function MealEntryDialog({
                 >
                   Per serving
                 </Typography>
-                <Stack
-                  sx={{ flexDirection: "row", gap: 2, mb: 2, fontSize: 12 }}
-                >
-                  <Box>
-                    <Typography
-                      variant="caption"
-                      color="text.disabled"
-                      sx={{ display: "block" }}
-                    >
-                      kcal
-                    </Typography>
-                    <Typography
-                      variant="body2"
-                      sx={{ fontFamily: "monospace" }}
-                    >
-                      {roundMacro("kcal", perServingMacros.kcal)}
-                    </Typography>
-                  </Box>
-                  <Box>
-                    <Typography
-                      variant="caption"
-                      color="text.disabled"
-                      sx={{ display: "block" }}
-                    >
-                      protein
-                    </Typography>
-                    <Typography
-                      variant="body2"
-                      sx={{ fontFamily: "monospace" }}
-                    >
-                      {roundMacro("protein", perServingMacros.protein)}g
-                    </Typography>
-                  </Box>
-                  <Box>
-                    <Typography
-                      variant="caption"
-                      color="text.disabled"
-                      sx={{ display: "block" }}
-                    >
-                      carbs
-                    </Typography>
-                    <Typography
-                      variant="body2"
-                      sx={{ fontFamily: "monospace" }}
-                    >
-                      {roundMacro("carbs", perServingMacros.carbs)}g
-                    </Typography>
-                  </Box>
-                  <Box>
-                    <Typography
-                      variant="caption"
-                      color="text.disabled"
-                      sx={{ display: "block" }}
-                    >
-                      fiber
-                    </Typography>
-                    <Typography
-                      variant="body2"
-                      sx={{ fontFamily: "monospace" }}
-                    >
-                      {roundMacro("fiber", perServingMacros.fiber)}g
-                    </Typography>
-                  </Box>
+                <Stack sx={{ flexDirection: "row", gap: 2, mb: 2 }}>
+                  {(["kcal", "protein", "carbs", "fiber"] as const).map(
+                    (key) => (
+                      <Box key={key}>
+                        <Typography
+                          variant="caption"
+                          color="text.disabled"
+                          sx={{ display: "block" }}
+                        >
+                          {key}
+                        </Typography>
+                        <Typography
+                          variant="body2"
+                          sx={{ fontFamily: "monospace" }}
+                        >
+                          {roundMacro(key, perServingMacros[key])}
+                          {key !== "kcal" && "g"}
+                        </Typography>
+                      </Box>
+                    ),
+                  )}
                 </Stack>
 
                 <Typography
@@ -250,67 +242,27 @@ export function MealEntryDialog({
                   Total for {servingsEaten} serving
                   {Number(servingsEaten) === 1 ? "" : "s"}
                 </Typography>
-                <Stack sx={{ flexDirection: "row", gap: 2, fontSize: 12 }}>
-                  <Box>
-                    <Typography
-                      variant="caption"
-                      color="text.disabled"
-                      sx={{ display: "block" }}
-                    >
-                      kcal
-                    </Typography>
-                    <Typography
-                      variant="body2"
-                      sx={{ fontFamily: "monospace", fontWeight: 600 }}
-                    >
-                      {roundMacro("kcal", scaledMacros.kcal)}
-                    </Typography>
-                  </Box>
-                  <Box>
-                    <Typography
-                      variant="caption"
-                      color="text.disabled"
-                      sx={{ display: "block" }}
-                    >
-                      protein
-                    </Typography>
-                    <Typography
-                      variant="body2"
-                      sx={{ fontFamily: "monospace", fontWeight: 600 }}
-                    >
-                      {roundMacro("protein", scaledMacros.protein)}g
-                    </Typography>
-                  </Box>
-                  <Box>
-                    <Typography
-                      variant="caption"
-                      color="text.disabled"
-                      sx={{ display: "block" }}
-                    >
-                      carbs
-                    </Typography>
-                    <Typography
-                      variant="body2"
-                      sx={{ fontFamily: "monospace", fontWeight: 600 }}
-                    >
-                      {roundMacro("carbs", scaledMacros.carbs)}g
-                    </Typography>
-                  </Box>
-                  <Box>
-                    <Typography
-                      variant="caption"
-                      color="text.disabled"
-                      sx={{ display: "block" }}
-                    >
-                      fiber
-                    </Typography>
-                    <Typography
-                      variant="body2"
-                      sx={{ fontFamily: "monospace", fontWeight: 600 }}
-                    >
-                      {roundMacro("fiber", scaledMacros.fiber)}g
-                    </Typography>
-                  </Box>
+                <Stack sx={{ flexDirection: "row", gap: 2 }}>
+                  {(["kcal", "protein", "carbs", "fiber"] as const).map(
+                    (key) => (
+                      <Box key={key}>
+                        <Typography
+                          variant="caption"
+                          color="text.disabled"
+                          sx={{ display: "block" }}
+                        >
+                          {key}
+                        </Typography>
+                        <Typography
+                          variant="body2"
+                          sx={{ fontFamily: "monospace", fontWeight: 600 }}
+                        >
+                          {roundMacro(key, scaledMacros[key])}
+                          {key !== "kcal" && "g"}
+                        </Typography>
+                      </Box>
+                    ),
+                  )}
                 </Stack>
               </Paper>
             )}
@@ -326,7 +278,7 @@ export function MealEntryDialog({
           </Stack>
         )}
 
-        {/* ── Tab 1: Ingredients (if recipe has ingredients) ── */}
+        {/* tab 1: Ingredients */}
         {selectedRecipe && hasIngredients && tab === 1 && (
           <Stack sx={{ gap: 2 }}>
             <IngredientEditor
@@ -334,6 +286,14 @@ export function MealEntryDialog({
               setIngredients={setIngredientRows}
               updateIngredient={updateIngredientRow}
               derived={null}
+            />
+            <TextField
+              label="Date eaten"
+              value={loggedAt}
+              onChange={(e) => setLoggedAt(e.target.value)}
+              size="small"
+              type="date"
+              slotProps={{ inputLabel: { shrink: true } }}
             />
             <TextField
               label="Notes"
@@ -346,8 +306,8 @@ export function MealEntryDialog({
           </Stack>
         )}
 
-        {/* ── Tab 2: Manual ── */}
-        {tab === (selectedRecipe && hasIngredients ? 2 : 1) && (
+        {/* tab 2: Manual */}
+        {tab === manualTabIndex && (
           <Stack sx={{ gap: 2 }}>
             <TextField
               label="Meal name"
@@ -358,15 +318,27 @@ export function MealEntryDialog({
               placeholder="e.g., Chicken breast with rice"
             />
 
-            <TextField
-              label="Servings"
-              value={servingsEaten}
-              onChange={(e) => setServingsEaten(e.target.value)}
-              size="small"
-              type="number"
-              slotProps={{ htmlInput: { min: 0, step: "any" } }}
-              required
-            />
+            <Stack sx={{ flexDirection: "row", gap: 2 }}>
+              <TextField
+                label="Servings"
+                value={servingsEaten}
+                onChange={(e) => setServingsEaten(e.target.value)}
+                size="small"
+                type="number"
+                slotProps={{ htmlInput: { min: 0, step: "any" } }}
+                required
+                sx={{ flex: 1 }}
+              />
+              <TextField
+                label="Date & time eaten"
+                value={loggedAt}
+                onChange={(e) => setLoggedAt(e.target.value)}
+                size="small"
+                type="datetime-local"
+                slotProps={{ inputLabel: { shrink: true } }}
+                sx={{ flex: 1 }}
+              />
+            </Stack>
 
             <Stack sx={{ flexDirection: "row", gap: 2, flexWrap: "wrap" }}>
               <MacroField

@@ -6,16 +6,15 @@ import { env } from "@/env";
 
 export const authOptions: NextAuthOptions = {
   adapter: MongoDBAdapter(clientPromise),
-  session: { strategy: "database" },
+  session: { strategy: "jwt" },
   callbacks: {
-    session({ session, user }) {
-      session.user.id = user.id;
+    session({ session, token }) {
+      if (token.sub) session.user.id = token.sub;
       return session;
     },
-    signIn({ account }) {
-      if (account?.provider !== "discord") return false;
-      console.log(account.providerAccountId);
-      return env.ALLOWED_DISCORD_IDS.has(account.providerAccountId as string);
+    jwt({ token, user }) {
+      if (user) token.sub = user.id;
+      return token;
     },
   },
   providers: [

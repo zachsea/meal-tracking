@@ -1,9 +1,20 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+import { redirect } from "next/navigation";
 
 export async function requireUser() {
   const session = await getServerSession(authOptions);
-  if (!session?.user?.id) return null;
+
+  if (!session?.user) {
+    redirect("/login");
+  }
+
+  if (!session.user.id) {
+    throw new Error(
+      "Session exists but user ID is missing — check your session callback",
+    );
+  }
+
   return session.user;
 }
 

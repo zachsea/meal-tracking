@@ -6,6 +6,7 @@ import { useState } from "react";
 import { Sidebar } from "./Sidebar";
 import { TopBar } from "./TopBar";
 import { CalorieProvider } from "@/context/CalorieContext";
+import { MealEntryDialog } from "../log/MealEntryDialog";
 
 const SIDEBAR_WIDTH = 220;
 const TOPBAR_HEIGHT = 52;
@@ -14,6 +15,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [logMealOpen, setLogMealOpen] = useState(false);
 
   return (
     <CalorieProvider>
@@ -23,6 +25,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           isMobile={isMobile}
           mobileOpen={mobileOpen}
           onMobileClose={() => setMobileOpen(false)}
+          onLogMeal={() => setLogMealOpen(true)}
         />
         <Box
           sx={{
@@ -59,6 +62,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </Box>
         </Box>
       </Box>
+
+      <MealEntryDialog
+        open={logMealOpen}
+        entry={null}
+        onClose={() => setLogMealOpen(false)}
+        onSaved={() => setLogMealOpen(false)}
+      />
     </CalorieProvider>
   );
 }

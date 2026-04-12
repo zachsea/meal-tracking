@@ -11,6 +11,12 @@ import { Recipe } from "@/types/recipe";
 import { IngredientRow } from "@/types/recipe";
 import { IIngredient } from "@/models/Recipe";
 
+function todayString() {
+  const d = new Date();
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
 function emptyIngredient(): IngredientRow {
   return {
     id: crypto.randomUUID(),
@@ -61,6 +67,8 @@ export function useMealEntryForm({
   const [manualCarbs, setManualCarbs] = useState("");
   const [manualSugar, setManualSugar] = useState("");
   const [manualSodium, setManualSodium] = useState("");
+
+  const [loggedAt, setLoggedAt] = useState(todayString());
 
   // Derived values
   const selectedRecipe = useMemo(
@@ -116,6 +124,14 @@ export function useMealEntryForm({
       // Edit mode: populate from entry
       setNotes(entry.notes || "");
       setServingsEaten(String(entry.servingsEaten));
+      setLoggedAt(
+        entry.loggedAt
+          ? new Date(entry.loggedAt)
+              .toLocaleString("sv-SE", { hour12: false })
+              .slice(0, 16)
+              .replace(" ", "T")
+          : todayString(),
+      );
 
       if (entry.recipeId) {
         setSelectedRecipeId(entry.recipeId);
@@ -174,6 +190,7 @@ export function useMealEntryForm({
       setManualCarbs("");
       setManualSugar("");
       setManualSodium("");
+      setLoggedAt(todayString());
     }
   }, [open, entry, isEdit]);
 
@@ -246,11 +263,17 @@ export function useMealEntryForm({
                 servingsEaten: Number(servingsEaten),
                 notes: notes || undefined,
                 macroOverrides: scaledMacros,
+                loggedAt: loggedAt
+                  ? new Date(loggedAt).toISOString()
+                  : undefined,
               });
             } else {
               await createMealEntryFromRecipe({
                 ...baseData,
                 macroOverrides: scaledMacros,
+                loggedAt: loggedAt
+                  ? new Date(loggedAt).toISOString()
+                  : undefined,
               });
             }
           }
@@ -284,6 +307,7 @@ export function useMealEntryForm({
                 sugar: Number(manualSugar) || 0,
                 sodium: Number(manualSodium) || 0,
               },
+              loggedAt: loggedAt ? new Date(loggedAt).toISOString() : undefined,
             });
           } else {
             await createManualMealEntry({
@@ -296,6 +320,7 @@ export function useMealEntryForm({
               sugar: Number(manualSugar) || 0,
               sodium: Number(manualSodium) || 0,
               notes: notes || undefined,
+              loggedAt: loggedAt ? new Date(loggedAt).toISOString() : undefined,
             });
           }
 
@@ -368,5 +393,8 @@ export function useMealEntryForm({
 
     // Derived
     isEdit,
+
+    loggedAt,
+    setLoggedAt,
   };
 }

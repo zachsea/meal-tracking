@@ -16,6 +16,7 @@ import { useEffect, useState, useTransition } from "react";
 import { getMealEntries } from "@/actions/mealEntries";
 import { MealEntry } from "@/types/mealEntry";
 import { roundMacro } from "@/utils/macros";
+import { MealEntryDialog } from "@/components/log/MealEntryDialog";
 
 export default function HistoryPage() {
   const [entries, setEntries] = useState<MealEntry[]>([]);
@@ -24,36 +25,32 @@ export default function HistoryPage() {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [loading, setLoading] = useState(true);
+  const [editEntry, setEditEntry] = useState<MealEntry | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
   const [, startTransition] = useTransition();
 
-  // Fetch entries for the selected date range
-  useEffect(() => {
+  function loadEntries() {
     setLoading(true);
     startTransition(async () => {
       try {
-        let filteredData: MealEntry[] = [];
-        if (startDate || endDate) {
-          // Fetch all and filter client-side by date range
-          const data = await getMealEntries();
-          filteredData = data.filter((e: MealEntry) => {
-            const entryDate = new Date(e.loggedAt).toISOString().split("T")[0];
-            if (startDate && entryDate < startDate) return false;
-            if (endDate && entryDate > endDate) return false;
-            return true;
-          });
-        } else {
-          // No date filter, fetch all (last 50)
-          const data = await getMealEntries();
-          filteredData = data;
-        }
-        setEntries(filteredData);
+        const data = await getMealEntries();
+        const filtered = data.filter((e: MealEntry) => {
+          const entryDate = new Date(e.loggedAt).toISOString().split("T")[0];
+          if (startDate && entryDate < startDate) return false;
+          if (endDate && entryDate > endDate) return false;
+          return true;
+        });
+        setEntries(filtered);
       } finally {
         setLoading(false);
       }
     });
+  }
+
+  useEffect(() => {
+    loadEntries();
   }, [startDate, endDate]);
 
-  // Filter by search (client-side)
   useEffect(() => {
     const filtered = entries.filter((e) =>
       e.recipeName.toLowerCase().includes(search.toLowerCase()),
@@ -61,10 +58,25 @@ export default function HistoryPage() {
     setFilteredEntries(filtered);
   }, [entries, search]);
 
-  // Group entries by date (using ISO date for reliable sorting)
+  function handleRowClick(entry: MealEntry) {
+    setEditEntry(entry);
+    setDialogOpen(true);
+  }
+
+  function handleClose() {
+    setDialogOpen(false);
+    setEditEntry(null);
+  }
+
+  function handleSaved() {
+    setDialogOpen(false);
+    setEditEntry(null);
+    loadEntries();
+  }
+
   const groupedByDate = filteredEntries.reduce(
     (acc, entry) => {
-      const isoDate = new Date(entry.loggedAt).toISOString().split("T")[0]; // YYYY-MM-DD
+      const isoDate = new Date(entry.loggedAt).toISOString().split("T")[0];
       if (!acc[isoDate]) acc[isoDate] = [];
       acc[isoDate].push(entry);
       return acc;
@@ -72,17 +84,11 @@ export default function HistoryPage() {
     {} as Record<string, MealEntry[]>,
   );
 
-  // Create date labels for display (formatted, not for sorting)
   const dateLabels = Object.fromEntries(
     Object.keys(groupedByDate).map((isoDate) => {
       const label = new Date(isoDate + "T00:00:00").toLocaleDateString(
         "en-US",
-        {
-          weekday: "long",
-          year: "numeric",
-          month: "short",
-          day: "numeric",
-        },
+        { weekday: "long", year: "numeric", month: "short", day: "numeric" },
       );
       return [isoDate, label] as const;
     }),
@@ -94,7 +100,6 @@ export default function HistoryPage() {
 
   return (
     <Box>
-      {/* Header */}
       <Box sx={{ mb: 3 }}>
         <Typography
           variant="h5"
@@ -136,7 +141,6 @@ export default function HistoryPage() {
         </Box>
       </Box>
 
-      {/* Table */}
       <TableContainer>
         <Table>
           <TableHead>
@@ -176,7 +180,6 @@ export default function HistoryPage() {
             ) : (
               dateKeys
                 .map((date) => [
-                  // Date divider row
                   <TableRow
                     key={`divider-${date}`}
                     sx={{ bgcolor: "action.hover" }}
@@ -195,11 +198,14 @@ export default function HistoryPage() {
                       {dateLabels[date]}
                     </TableCell>
                   </TableRow>,
-                  // Meals for this date
                   ...groupedByDate[date].map((entry: MealEntry) => (
                     <TableRow
                       key={entry._id}
-                      sx={{ "&:hover": { bgcolor: "action.hover" } }}
+                      onClick={() => handleRowClick(entry)}
+                      sx={{
+                        cursor: "pointer",
+                        "&:hover": { bgcolor: "action.hover" },
+                      }}
                     >
                       <TableCell sx={{ fontSize: 13, color: "text.secondary" }}>
                         {new Date(entry.loggedAt).toLocaleTimeString("en-US", {
@@ -245,6 +251,13 @@ export default function HistoryPage() {
           </TableBody>
         </Table>
       </TableContainer>
+
+      <MealEntryDialog
+        open={dialogOpen}
+        entry={editEntry}
+        onClose={handleClose}
+        onSaved={handleSaved}
+      />
     </Box>
   );
 }

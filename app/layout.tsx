@@ -4,6 +4,8 @@ import { AppRouterCacheProvider } from "@mui/material-nextjs/v15-appRouter";
 import { Providers } from "./providers";
 import { AppShell } from "@/components/layout/AppShell";
 import "./globals.css";
+import { authOptions } from "@/lib/auth";
+import { getServerSession } from "next-auth";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -20,15 +22,22 @@ export const metadata: Metadata = {
   description: "Track food",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+  const session = await getServerSession(authOptions);
+
   return (
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
       <body>
         <AppRouterCacheProvider options={{ enableCssLayer: true }}>
           <Providers>
-            <AppShell>{children}</AppShell>
+            {session ? (
+              <AppShell>{children}</AppShell>
+            ) : (
+              // Login page renders without the sidebar/topbar shell
+              children
+            )}
           </Providers>
         </AppRouterCacheProvider>
       </body>
