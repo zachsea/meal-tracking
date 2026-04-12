@@ -10,6 +10,7 @@ import { MealEntry } from "@/types/mealEntry";
 import { Recipe } from "@/types/recipe";
 import { IngredientRow } from "@/types/recipe";
 import { IIngredient } from "@/models/Recipe";
+import { roundMacro } from "@/utils/macros";
 
 function todayString() {
   const d = new Date();
@@ -232,12 +233,12 @@ export function useMealEntryForm({
                 recipeIngredientId: i.id, // using local id as placeholder
                 name: i.name,
                 amount: i.amount,
-                kcal: Number(i.kcal) || 0,
-                protein: Number(i.protein) || 0,
-                fiber: Number(i.fiber) || 0,
-                carbs: Number(i.carbs) || 0,
-                sugar: Number(i.sugar) || 0,
-                sodium: Number(i.sodium) || 0,
+                kcal: roundMacro("kcal", Number(i.kcal) || 0),
+                protein: roundMacro("protein", Number(i.protein) || 0),
+                fiber: roundMacro("fiber", Number(i.fiber) || 0),
+                carbs: roundMacro("carbs", Number(i.carbs) || 0),
+                sugar: roundMacro("sugar", Number(i.sugar) || 0),
+                sodium: roundMacro("sodium", Number(i.sodium) || 0),
               }));
 
             if (isEdit && entry) {
@@ -300,12 +301,12 @@ export function useMealEntryForm({
               servingsEaten: Number(servingsEaten),
               notes: notes || undefined,
               macroOverrides: {
-                kcal: Number(manualKcal) || 0,
-                protein: Number(manualProtein) || 0,
-                fiber: Number(manualFiber) || 0,
-                carbs: Number(manualCarbs) || 0,
-                sugar: Number(manualSugar) || 0,
-                sodium: Number(manualSodium) || 0,
+                kcal: roundMacro("kcal", Number(manualKcal) || 0),
+                protein: roundMacro("protein", Number(manualProtein) || 0),
+                fiber: roundMacro("fiber", Number(manualFiber) || 0),
+                carbs: roundMacro("carbs", Number(manualCarbs) || 0),
+                sugar: roundMacro("sugar", Number(manualSugar) || 0),
+                sodium: roundMacro("sodium", Number(manualSodium) || 0),
               },
               loggedAt: loggedAt ? new Date(loggedAt).toISOString() : undefined,
             });
@@ -313,12 +314,12 @@ export function useMealEntryForm({
             await createManualMealEntry({
               recipeName: manualName.trim(),
               servingsEaten: Number(servingsEaten),
-              kcal: Number(manualKcal) || 0,
-              protein: Number(manualProtein) || 0,
-              fiber: Number(manualFiber) || 0,
-              carbs: Number(manualCarbs) || 0,
-              sugar: Number(manualSugar) || 0,
-              sodium: Number(manualSodium) || 0,
+              kcal: roundMacro("kcal", Number(manualKcal) || 0),
+              protein: roundMacro("protein", Number(manualProtein) || 0),
+              fiber: roundMacro("fiber", Number(manualFiber) || 0),
+              carbs: roundMacro("carbs", Number(manualCarbs) || 0),
+              sugar: roundMacro("sugar", Number(manualSugar) || 0),
+              sodium: roundMacro("sodium", Number(manualSodium) || 0),
               notes: notes || undefined,
               loggedAt: loggedAt ? new Date(loggedAt).toISOString() : undefined,
             });

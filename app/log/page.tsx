@@ -219,7 +219,6 @@ export default function LogPage() {
       <MealEntryDialog
         open={dialogOpen}
         entry={editTarget}
-        recipes={recipes}
         onClose={handleClose}
         onSaved={handleSaved}
       />

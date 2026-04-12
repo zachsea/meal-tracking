@@ -14,25 +14,6 @@ type MacroTotals = {
   sodium: number;
 };
 
-// If structured ingredients are provided, sum them.
-function resolveMacros(
-  ingredients: Omit<IIngredient, "_id">[] | undefined,
-  explicit: MacroTotals,
-): MacroTotals {
-  if (!ingredients || ingredients.length === 0) return explicit;
-  return ingredients.reduce(
-    (acc, ing) => ({
-      kcal: acc.kcal + ing.kcal,
-      protein: acc.protein + ing.protein,
-      fiber: acc.fiber + ing.fiber,
-      carbs: acc.carbs + ing.carbs,
-      sugar: acc.sugar + ing.sugar,
-      sodium: acc.sodium + ing.sodium,
-    }),
-    { kcal: 0, protein: 0, fiber: 0, carbs: 0, sugar: 0, sodium: 0 },
-  );
-}
-
 type IngredientInput = {
   name: string;
   amount: string;
@@ -100,15 +81,6 @@ export async function createRecipe(data: CreateRecipeInput) {
   const user = await requireUser();
   if (!user) throw new Error("Unauthorized");
 
-  const macros = resolveMacros(data.ingredients, {
-    kcal: data.kcal,
-    protein: data.protein,
-    fiber: data.fiber,
-    carbs: data.carbs,
-    sugar: data.sugar,
-    sodium: data.sodium,
-  });
-
   await connectDB();
   const recipe = await Recipe.create({
     userId: user.id,
@@ -124,7 +96,12 @@ export async function createRecipe(data: CreateRecipeInput) {
         servingsMade: data.servingsMade,
         ingredients: data.ingredients ?? [],
         changeNote: data.changeNote,
-        ...macros,
+        kcal: data.kcal,
+        protein: data.protein,
+        fiber: data.fiber,
+        carbs: data.carbs,
+        sugar: data.sugar,
+        sodium: data.sodium,
       },
     ],
   });
@@ -151,21 +128,18 @@ export async function updateRecipe(id: string, data: UpdateRecipeInput) {
 
   if (data.newVersion) {
     const v = data.newVersion;
-    const macros = resolveMacros(v.ingredients, {
-      kcal: v.kcal,
-      protein: v.protein,
-      fiber: v.fiber,
-      carbs: v.carbs,
-      sugar: v.sugar,
-      sodium: v.sodium,
-    });
     const nextVersionNumber = (recipe.versions.at(-1)?.versionNumber ?? 0) + 1;
     recipe.versions.push({
       versionNumber: nextVersionNumber,
       servingsMade: v.servingsMade,
       ingredients: v.ingredients ?? [],
       changeNote: v.changeNote,
-      ...macros,
+      kcal: v.kcal,
+      protein: v.protein,
+      fiber: v.fiber,
+      carbs: v.carbs,
+      sugar: v.sugar,
+      sodium: v.sodium,
     });
   }
 

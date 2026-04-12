@@ -3,6 +3,7 @@ import { createRecipe, updateRecipe, deleteRecipe } from "@/actions/recipes";
 import { IIngredient } from "@/models/Recipe";
 import { latestVersion, sumIngredients } from "@/utils/recipe";
 import { IngredientRow, Recipe } from "@/types/recipe";
+import { roundMacro } from "@/utils/macros";
 
 function emptyIngredient(): IngredientRow {
   return {
@@ -132,45 +133,57 @@ export function useRecipeForm({
   }
 
   function handleSave() {
+    console.log("macroMode:", macroMode);
+    console.log("derived:", derived);
+    console.log("servingsMade:", servingsMade);
     setError(null);
-
-    const macros =
-      macroMode === "ingredients" && derived
-        ? derived
-        : {
-            kcal: Number(kcal),
-            protein: Number(protein),
-            fiber: Number(fiber),
-            carbs: Number(carbs),
-            sugar: Number(sugar),
-            sodium: Number(sodium),
-          };
 
     if (!name.trim()) return setError("Recipe name is required");
     if (!servingSize.trim()) return setError("Serving size is required");
     if (!servingsMade || isNaN(Number(servingsMade)))
       return setError("Servings made must be a number");
 
-    const versionData = {
-      servingsMade: Number(servingsMade),
-      changeNote: changeNote || undefined,
-      ingredients:
-        macroMode === "ingredients"
-          ? ingredients
-              .filter((i) => i.name.trim())
-              .map((i) => ({
-                name: i.name,
-                amount: i.amount,
-                kcal: Number(i.kcal) || 0,
-                protein: Number(i.protein) || 0,
-                fiber: Number(i.fiber) || 0,
-                carbs: Number(i.carbs) || 0,
-                sugar: Number(i.sugar) || 0,
-                sodium: Number(i.sodium) || 0,
-              }))
-          : undefined,
-      ...macros,
-    };
+    const servingCount = parseFloat(servingsMade) || 1;
+
+    let versionData;
+
+    if (macroMode === "ingredients" && derived) {
+      // ingredient mode — totals are for the whole recipe, divide to get per-serving
+      versionData = {
+        servingsMade: servingCount,
+        changeNote: changeNote || undefined,
+        ingredients: ingredients
+          .filter((i) => i.name.trim())
+          .map((i) => ({
+            name: i.name,
+            amount: i.amount,
+            kcal: roundMacro("kcal", Number(i.kcal) || 0),
+            protein: roundMacro("protein", Number(i.protein) || 0),
+            fiber: roundMacro("fiber", Number(i.fiber) || 0),
+            carbs: roundMacro("carbs", Number(i.carbs) || 0),
+            sugar: roundMacro("sugar", Number(i.sugar) || 0),
+            sodium: roundMacro("sodium", Number(i.sodium) || 0),
+          })),
+        kcal: roundMacro("kcal", derived.kcal / servingCount),
+        protein: roundMacro("protein", derived.protein / servingCount),
+        fiber: roundMacro("fiber", derived.fiber / servingCount),
+        carbs: roundMacro("carbs", derived.carbs / servingCount),
+        sugar: roundMacro("sugar", derived.sugar / servingCount),
+        sodium: roundMacro("sodium", derived.sodium / servingCount),
+      };
+    } else {
+      versionData = {
+        servingsMade: servingCount,
+        changeNote: changeNote || undefined,
+        ingredients: [],
+        kcal: roundMacro("kcal", Number(kcal)),
+        protein: roundMacro("protein", Number(protein)),
+        fiber: roundMacro("fiber", Number(fiber)),
+        carbs: roundMacro("carbs", Number(carbs)),
+        sugar: roundMacro("sugar", Number(sugar)),
+        sodium: roundMacro("sodium", Number(sodium)),
+      };
+    }
 
     const meta = {
       name: name.trim(),

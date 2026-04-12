@@ -159,47 +159,6 @@ export function IngredientEditor({
       >
         Add ingredient
       </Button>
-
-      {/* Derived totals */}
-      {derived && (
-        <Paper
-          variant="outlined"
-          sx={{ p: 1.5, bgcolor: "action.hover", mt: 1 }}
-        >
-          <Typography
-            variant="caption"
-            color="text.secondary"
-            sx={{ mb: 1, display: "block" }}
-          >
-            Totals (summed from ingredients)
-          </Typography>
-          <Stack sx={{ flexDirection: "row", gap: 3, flexWrap: "wrap" }}>
-            {(
-              ["kcal", "protein", "fiber", "carbs", "sugar", "sodium"] as const
-            ).map((key) => (
-              <Box key={key} sx={{ textAlign: "center" }}>
-                <Typography
-                  variant="caption"
-                  color="text.disabled"
-                  sx={{
-                    display: "block",
-                    textTransform: "uppercase",
-                    fontSize: 10,
-                  }}
-                >
-                  {key}
-                </Typography>
-                <Typography
-                  variant="body2"
-                  sx={{ fontFamily: "monospace", fontWeight: 600 }}
-                >
-                  {derived[key]}
-                </Typography>
-              </Box>
-            ))}
-          </Stack>
-        </Paper>
-      )}
     </Stack>
   );
 }
