@@ -1,5 +1,4 @@
 import {
-  Box,
   Chip,
   IconButton,
   Paper,
@@ -17,7 +16,7 @@ interface MealEntryCardProps {
 }
 
 export function MealEntryCard({ entry, onEdit }: MealEntryCardProps) {
-  const isEdited = entry.macrosOverridden || entry.ingredientsOverridden;
+  const isEdited = entry.ingredientsOverridden;
 
   return (
     <Paper variant="outlined" sx={{ p: 2 }}>

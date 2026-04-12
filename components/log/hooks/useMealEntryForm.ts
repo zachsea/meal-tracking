@@ -75,14 +75,14 @@ export function useMealEntryForm({
 
   const perServingMacros = useMemo(() => {
     if (!selectedVersion) return null;
-    const divisor = selectedVersion.servingsMade || 1;
+    // recipe macros are already per-serving, no need to divide
     return {
-      kcal: selectedVersion.kcal / divisor,
-      protein: selectedVersion.protein / divisor,
-      fiber: selectedVersion.fiber / divisor,
-      carbs: selectedVersion.carbs / divisor,
-      sugar: selectedVersion.sugar / divisor,
-      sodium: selectedVersion.sodium / divisor,
+      kcal: selectedVersion.kcal,
+      protein: selectedVersion.protein,
+      fiber: selectedVersion.fiber,
+      carbs: selectedVersion.carbs,
+      sugar: selectedVersion.sugar,
+      sodium: selectedVersion.sodium,
     };
   }, [selectedVersion]);
 
