@@ -4,12 +4,16 @@ services:
     ports:
       - "3000:3000"
     environment:
-      MONGODB_URI: mongodb://mongo:27017/your-db-name
+      MONGODB_URI: ${MONGODB_URI}
       NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
       NEXTAUTH_URL: ${NEXTAUTH_URL}
+      DISCORD_ID: ${DISCORD_ID}
+      DISCORD_SECRET: ${DISCORD_SECRET}
+      ALLOWED_DISCORD_IDS: ${ALLOWED_DISCORD_IDS}
     depends_on:
       mongo:
         condition: service_healthy
+    restart: unless-stopped
 
   mongo:
     image: mongo:8
@@ -20,6 +24,8 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    restart: unless-stopped
 
 volumes:
   mongo-data:
+
