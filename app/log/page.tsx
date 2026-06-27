@@ -28,6 +28,23 @@ function getLocalDateString(date: Date = new Date()) {
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
 }
 
+function getLocalDateKey(dateStr: string | Date) {
+  const date = dateStr instanceof Date ? dateStr : new Date(dateStr);
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(date);
+
+  const values = Object.fromEntries(
+    parts
+      .filter((part) => part.type !== "literal")
+      .map((part) => [part.type, part.value]),
+  );
+
+  return `${values.year}-${values.month}-${values.day}`;
+}
+
 export default function LogPage() {
   const [entries, setEntries] = useState<MealEntry[]>([]);
   const [recipes, setRecipes] = useState<Recipe[]>([]);
@@ -41,11 +58,15 @@ export default function LogPage() {
     startTransition(async () => {
       try {
         const todayStr = getLocalDateString();
-        const [entriesData, recipesData] = await Promise.all([
-          getMealEntries(todayStr),
+        const [allEntries, recipesData] = await Promise.all([
+          getMealEntries(),
           getRecipes(),
         ]);
-        setEntries(entriesData);
+        // Filter entries to only today's meals using local date key
+        const todayEntries = allEntries.filter(
+          (e: MealEntry) => getLocalDateKey(e.loggedAt) === todayStr,
+        );
+        setEntries(todayEntries);
         setRecipes(recipesData);
       } finally {
         setLoading(false);
