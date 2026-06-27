@@ -1,14 +1,9 @@
-import {
-  Chip,
-  IconButton,
-  Paper,
-  Stack,
-  Typography,
-} from "@mui/material";
+import { Chip, IconButton, Paper, Stack, Typography } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import { MealEntry } from "@/types/mealEntry";
 import { MacroChip } from "@/components/recipe/MacroChip";
 import { roundMacro } from "@/utils/macros";
+import { useCalories } from "@/context/CalorieContext";
 
 interface MealEntryCardProps {
   entry: MealEntry;
@@ -16,6 +11,7 @@ interface MealEntryCardProps {
 }
 
 export function MealEntryCard({ entry, onEdit }: MealEntryCardProps) {
+  const { visible } = useCalories();
   const isEdited = entry.ingredientsOverridden;
 
   return (
@@ -35,7 +31,11 @@ export function MealEntryCard({ entry, onEdit }: MealEntryCardProps) {
             </Typography>
             {isEdited && (
               <Chip
-                label={entry.ingredientsOverridden ? "ingredients edited" : "macros edited"}
+                label={
+                  entry.ingredientsOverridden
+                    ? "ingredients edited"
+                    : "macros edited"
+                }
                 size="small"
                 variant="outlined"
                 sx={{ alignSelf: "flex-start", mt: 0.5 }}
@@ -57,7 +57,7 @@ export function MealEntryCard({ entry, onEdit }: MealEntryCardProps) {
             value={roundMacro("kcal", entry.kcal)}
             unit=""
             color="primary.main"
-            blurred={false}
+            blurred={!visible}
           />
           <MacroChip
             label="Protein"

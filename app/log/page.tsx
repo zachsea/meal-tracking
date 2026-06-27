@@ -21,6 +21,7 @@ import { MacroChip } from "@/components/recipe/MacroChip";
 import { MealEntryCard } from "@/components/log/MealEntryCard";
 import { MealEntryDialog } from "@/components/log/MealEntryDialog";
 import { roundMacro } from "@/utils/macros";
+import { useCalories } from "@/context/CalorieContext";
 
 export default function LogPage() {
   const [entries, setEntries] = useState<MealEntry[]>([]);
@@ -29,6 +30,7 @@ export default function LogPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<MealEntry | null>(null);
   const [, startTransition] = useTransition();
+  const { visible } = useCalories();
 
   function loadData() {
     startTransition(async () => {
@@ -112,7 +114,7 @@ export default function LogPage() {
             variant="h5"
             sx={{ fontWeight: 600, letterSpacing: "-0.3px" }}
           >
-            Today's Log
+            Today&apos;s Log
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
             {todayLabel}
@@ -139,7 +141,7 @@ export default function LogPage() {
               value={roundMacro("kcal", totals.kcal)}
               unit=""
               color="primary.main"
-              blurred={false}
+              blurred={!visible}
             />
             <MacroChip
               label="Protein"

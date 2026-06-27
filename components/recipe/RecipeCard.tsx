@@ -125,7 +125,7 @@ export function RecipeCard({
                 label="carbs"
                 value={v.carbs}
                 color="warning.main"
-                blurred={!visible}
+                blurred={false}
               />
               <MacroChip
                 label="fiber"
@@ -137,13 +137,13 @@ export function RecipeCard({
                 label="sugar"
                 value={v.sugar}
                 color="error.main"
-                blurred={!visible}
+                blurred={false}
               />
               <MacroChip
                 label="sodium"
                 value={v.sodium}
                 color="secondary.main"
-                blurred={!visible}
+                blurred={false}
               />
             </Box>
           </>
