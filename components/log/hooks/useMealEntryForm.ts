@@ -208,8 +208,12 @@ export function useMealEntryForm({
   function handleSave(activeTab: number) {
     setError(null);
 
-    if (activeTab === 0 || activeTab === 1) {
-      // Recipe-based (servings or ingredient mode)
+    const isRecipeMode =
+      activeTab === 0 ||
+      (activeTab === 1 && Boolean(selectedRecipe && hasIngredients));
+
+    if (isRecipeMode) {
+      // Recipe-based (recipe or ingredient override mode)
       if (!selectedRecipeId) {
         return setError("Please select a recipe");
       }

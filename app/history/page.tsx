@@ -12,11 +12,38 @@ import {
   Typography,
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
-import { useEffect, useState, useTransition } from "react";
+import { useCallback, useEffect, useState, useTransition } from "react";
 import { getMealEntries } from "@/actions/mealEntries";
 import { MealEntry } from "@/types/mealEntry";
 import { roundMacro } from "@/utils/macros";
 import { MealEntryDialog } from "@/components/log/MealEntryDialog";
+
+function getLocalDateKey(date: Date | string) {
+  const parsedDate = date instanceof Date ? date : new Date(date);
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(parsedDate);
+
+  const values = Object.fromEntries(
+    parts
+      .filter((part) => part.type !== "literal")
+      .map((part) => [part.type, part.value]),
+  );
+
+  return `${values.year}-${values.month}-${values.day}`;
+}
+
+function formatDateLabel(dateKey: string) {
+  const [year, month, day] = dateKey.split("-").map(Number);
+  return new Intl.DateTimeFormat("en-US", {
+    weekday: "long",
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  }).format(new Date(year, month - 1, day));
+}
 
 export default function HistoryPage() {
   const [entries, setEntries] = useState<MealEntry[]>([]);
@@ -29,13 +56,13 @@ export default function HistoryPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [, startTransition] = useTransition();
 
-  function loadEntries() {
+  const loadEntries = useCallback(() => {
     setLoading(true);
     startTransition(async () => {
       try {
         const data = await getMealEntries();
         const filtered = data.filter((e: MealEntry) => {
-          const entryDate = new Date(e.loggedAt).toISOString().split("T")[0];
+          const entryDate = getLocalDateKey(e.loggedAt);
           if (startDate && entryDate < startDate) return false;
           if (endDate && entryDate > endDate) return false;
           return true;
@@ -45,11 +72,11 @@ export default function HistoryPage() {
         setLoading(false);
       }
     });
-  }
+  }, [endDate, startDate]);
 
   useEffect(() => {
     loadEntries();
-  }, [startDate, endDate]);
+  }, [loadEntries]);
 
   useEffect(() => {
     const filtered = entries.filter((e) =>
@@ -76,26 +103,23 @@ export default function HistoryPage() {
 
   const groupedByDate = filteredEntries.reduce(
     (acc, entry) => {
-      const isoDate = new Date(entry.loggedAt).toISOString().split("T")[0];
-      if (!acc[isoDate]) acc[isoDate] = [];
-      acc[isoDate].push(entry);
+      const dateKey = getLocalDateKey(entry.loggedAt);
+      if (!acc[dateKey]) acc[dateKey] = [];
+      acc[dateKey].push(entry);
       return acc;
     },
     {} as Record<string, MealEntry[]>,
   );
 
   const dateLabels = Object.fromEntries(
-    Object.keys(groupedByDate).map((isoDate) => {
-      const label = new Date(isoDate + "T00:00:00").toLocaleDateString(
-        "en-US",
-        { weekday: "long", year: "numeric", month: "short", day: "numeric" },
-      );
-      return [isoDate, label] as const;
+    Object.keys(groupedByDate).map((dateKey) => {
+      const label = formatDateLabel(dateKey);
+      return [dateKey, label] as const;
     }),
   );
 
-  const dateKeys = Object.keys(groupedByDate).sort(
-    (a, b) => new Date(b).getTime() - new Date(a).getTime(),
+  const dateKeys = Object.keys(groupedByDate).sort((a, b) =>
+    b.localeCompare(a),
   );
 
   return (
