@@ -23,6 +23,11 @@ import { MealEntryDialog } from "@/components/log/MealEntryDialog";
 import { roundMacro } from "@/utils/macros";
 import { useCalories } from "@/context/CalorieContext";
 
+function getLocalDateString(date: Date = new Date()) {
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+}
+
 export default function LogPage() {
   const [entries, setEntries] = useState<MealEntry[]>([]);
   const [recipes, setRecipes] = useState<Recipe[]>([]);
@@ -35,8 +40,7 @@ export default function LogPage() {
   function loadData() {
     startTransition(async () => {
       try {
-        const today = new Date();
-        const todayStr = today.toISOString().split("T")[0];
+        const todayStr = getLocalDateString();
         const [entriesData, recipesData] = await Promise.all([
           getMealEntries(todayStr),
           getRecipes(),
