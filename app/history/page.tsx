@@ -6,7 +6,6 @@ import {
   TableBody,
   TableCell,
   TableContainer,
-  TableHead,
   TableRow,
   TextField,
   Typography,
@@ -170,27 +169,6 @@ export default function HistoryPage() {
 
       <TableContainer>
         <Table>
-          <TableHead>
-            <TableRow sx={{ bgcolor: "action.hover" }}>
-              <TableCell sx={{ fontWeight: 600 }}>Date</TableCell>
-              <TableCell sx={{ fontWeight: 600 }}>Meal</TableCell>
-              <TableCell align="right" sx={{ fontWeight: 600 }}>
-                kcal
-              </TableCell>
-              <TableCell align="right" sx={{ fontWeight: 600 }}>
-                Protein
-              </TableCell>
-              <TableCell align="right" sx={{ fontWeight: 600 }}>
-                Carbs
-              </TableCell>
-              <TableCell align="right" sx={{ fontWeight: 600 }}>
-                Fiber
-              </TableCell>
-              <TableCell align="right" sx={{ fontWeight: 600 }}>
-                Servings
-              </TableCell>
-            </TableRow>
-          </TableHead>
           <TableBody>
             {loading ? (
               <TableRow>
