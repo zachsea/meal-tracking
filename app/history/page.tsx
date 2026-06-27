@@ -16,7 +16,9 @@ import { useCallback, useEffect, useState, useTransition } from "react";
 import { getMealEntries } from "@/actions/mealEntries";
 import { MealEntry } from "@/types/mealEntry";
 import { roundMacro } from "@/utils/macros";
+import { MacroChip } from "@/components/recipe/MacroChip";
 import { MealEntryDialog } from "@/components/log/MealEntryDialog";
+import { useCalories } from "@/context/CalorieContext";
 
 function getLocalDateKey(date: Date | string) {
   const parsedDate = date instanceof Date ? date : new Date(date);
@@ -49,6 +51,7 @@ export default function HistoryPage() {
   const [entries, setEntries] = useState<MealEntry[]>([]);
   const [filteredEntries, setFilteredEntries] = useState<MealEntry[]>([]);
   const [search, setSearch] = useState("");
+  const { visible } = useCalories();
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [loading, setLoading] = useState(true);
@@ -240,29 +243,41 @@ export default function HistoryPage() {
                       <TableCell sx={{ fontSize: 13 }}>
                         {entry.recipeName}
                       </TableCell>
-                      <TableCell
-                        align="right"
-                        sx={{ fontFamily: "monospace", fontSize: 13 }}
-                      >
-                        {roundMacro("kcal", entry.kcal)}
+                      <TableCell align="right">
+                        <MacroChip
+                          label="kcal"
+                          value={roundMacro("kcal", entry.kcal)}
+                          unit=""
+                          color="primary.main"
+                          blurred={!visible}
+                        />
                       </TableCell>
-                      <TableCell
-                        align="right"
-                        sx={{ fontFamily: "monospace", fontSize: 13 }}
-                      >
-                        {roundMacro("protein", entry.protein)}g
+                      <TableCell align="right">
+                        <MacroChip
+                          label="Protein"
+                          value={roundMacro("protein", entry.protein)}
+                          unit="g"
+                          color="success.main"
+                          blurred={false}
+                        />
                       </TableCell>
-                      <TableCell
-                        align="right"
-                        sx={{ fontFamily: "monospace", fontSize: 13 }}
-                      >
-                        {roundMacro("carbs", entry.carbs)}g
+                      <TableCell align="right">
+                        <MacroChip
+                          label="Carbs"
+                          value={roundMacro("carbs", entry.carbs)}
+                          unit="g"
+                          color="warning.main"
+                          blurred={false}
+                        />
                       </TableCell>
-                      <TableCell
-                        align="right"
-                        sx={{ fontFamily: "monospace", fontSize: 13 }}
-                      >
-                        {roundMacro("fiber", entry.fiber)}g
+                      <TableCell align="right">
+                        <MacroChip
+                          label="Fiber"
+                          value={roundMacro("fiber", entry.fiber)}
+                          unit="g"
+                          color="info.main"
+                          blurred={false}
+                        />
                       </TableCell>
                       <TableCell align="right" sx={{ fontSize: 13 }}>
                         {entry.servingsEaten}
